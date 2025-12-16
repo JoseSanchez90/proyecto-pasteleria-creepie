@@ -18,6 +18,7 @@ import { obtenerCategorias } from "@/app/actions/categorias";
 import { obtenerTamanos } from "@/app/actions/tamanos";
 import RingLoader from "@/components/loaders/ringLoader";
 import { FaSave } from "react-icons/fa";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 // Interface para categorías
 interface Categoria {
@@ -43,7 +44,7 @@ export default function EditarProductoPage() {
   const [producto, setProducto] = useState<ProductoCompleto | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [tamanos, setTamanos] = useState<Tamano[]>([]);
-  const [nuevasImagenes, setNuevasImagenes] = useState<File[]>([]);
+  const notyf = useNotyf();
   const [nuevoIngrediente, setNuevoIngrediente] = useState("");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [defaultSizeId, setDefaultSizeId] = useState<string>("");
@@ -88,6 +89,7 @@ export default function EditarProductoPage() {
           await obtenerTamanos();
         if (tamanosError) {
           console.error("Error cargando tamaños:", tamanosError);
+          notyf?.error("Error cargando tamaños");
         }
         setTamanos(tamanosData || []);
 
@@ -132,6 +134,7 @@ export default function EditarProductoPage() {
       } catch (err) {
         console.error("Error cargando datos:", err);
         setError(err instanceof Error ? err.message : "Error al cargar datos");
+        notyf?.error("Error cargando datos");
       } finally {
         setLoading(false);
       }
@@ -201,7 +204,7 @@ export default function EditarProductoPage() {
         }
       } catch (err) {
         console.error(`Error uploading image ${file.name}:`, err);
-        alert(
+        notyf?.error(
           err instanceof Error
             ? err.message
             : `Error al subir la imagen ${file.name}`
@@ -269,7 +272,9 @@ export default function EditarProductoPage() {
       );
     } catch (err) {
       console.error("Error eliminando imagen:", err);
-      alert(err instanceof Error ? err.message : "Error al eliminar imagen");
+      notyf?.error(
+        err instanceof Error ? err.message : "Error al eliminar imagen"
+      );
     }
   };
 
@@ -305,7 +310,7 @@ export default function EditarProductoPage() {
       setNuevoIngrediente("");
     } catch (err) {
       console.error("Error agregando ingrediente:", err);
-      alert(
+      notyf?.error(
         err instanceof Error ? err.message : "Error al agregar ingrediente"
       );
     }
@@ -334,7 +339,7 @@ export default function EditarProductoPage() {
       );
     } catch (err) {
       console.error("Error eliminando ingrediente:", err);
-      alert(
+      notyf?.error(
         err instanceof Error ? err.message : "Error al eliminar ingrediente"
       );
     }
@@ -351,18 +356,21 @@ export default function EditarProductoPage() {
     if (!formData.name || !formData.price || !formData.category_id) {
       setError("Nombre, precio y categoría son obligatorios");
       setSaving(false);
+      notyf?.error("Nombre, precio y categoría son obligatorios");
       return;
     }
 
     if (parseFloat(formData.price) <= 0) {
       setError("El precio debe ser mayor a 0");
       setSaving(false);
+      notyf?.error("El precio debe ser mayor a 0");
       return;
     }
 
     if (formData.is_offer && parseFloat(formData.offer_price) <= 0) {
       setError("El precio de oferta debe ser mayor a 0");
       setSaving(false);
+      notyf?.error("El precio de oferta debe ser mayor a 0");
       return;
     }
 
@@ -410,6 +418,7 @@ export default function EditarProductoPage() {
 
         if (sizesError) {
           console.error("Error actualizando tamaños:", sizesError);
+          notyf?.error("Error actualizando tamaños");
           // Continuamos aunque falle
         }
       } else {
@@ -420,7 +429,7 @@ export default function EditarProductoPage() {
         await actualizarTamanosDeProducto(producto.id, [], "");
       }
 
-      alert("Producto actualizado exitosamente");
+      notyf?.success("Producto actualizado");
       router.push("/dashboard/productos");
     } catch (error) {
       console.error("Error al actualizar producto:", error);
@@ -429,19 +438,15 @@ export default function EditarProductoPage() {
           ? error.message
           : "Error al actualizar el producto. Intenta nuevamente.";
       setError(errorMessage);
+      notyf?.error(errorMessage);
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán."
-      )
-    ) {
-      router.push("/dashboard/productos");
-    }
+    router.push("/dashboard/productos");
+    notyf?.error("Operación cancelada");
   };
 
   if (loading) {
@@ -996,6 +1001,7 @@ export default function EditarProductoPage() {
 
         <div className="flex items-center justify-end gap-4">
           <button
+            type="button"
             onClick={handleCancel}
             disabled={saving}
             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2 transition-colors cursor-pointer"
@@ -1004,7 +1010,7 @@ export default function EditarProductoPage() {
           </button>
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={saving}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors cursor-pointer"
           >

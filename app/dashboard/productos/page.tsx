@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Package,
-  ToggleRight,
-  ToggleLeft,
-} from "lucide-react";
+import { Plus, Search, Edit, Trash2, Package } from "lucide-react";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -22,6 +14,7 @@ import {
 } from "@/app/actions/productos";
 import { FaBan, FaToggleOff, FaToggleOn } from "react-icons/fa";
 import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function ProductosPage() {
   const [productos, setProductos] = useState<ProductoConCategoria[]>([]);
@@ -33,6 +26,7 @@ export default function ProductosPage() {
   const router = useRouter();
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 5;
+  const notyf = useNotyf();
 
   // Cargar productos al montar el componente
   useEffect(() => {
@@ -102,54 +96,41 @@ export default function ProductosPage() {
   const estados = ["todos", "activos", "inactivos"];
 
   const inhabilitarProductoHandler = async (id: string) => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres inhabilitar este producto? El producto no se mostrará a los clientes pero permanecerá en la base de datos."
-      )
-    ) {
-      try {
-        const { error } = await eliminarProducto(id);
+    try {
+      const { error } = await eliminarProducto(id);
 
-        if (error) {
-          throw new Error(error);
-        }
-
-        // Actualizar lista local
-        setProductos(productos.filter((p) => p.id !== id));
-        alert("Producto inhabilitado exitosamente");
-      } catch (err) {
-        console.error("Error inhabilitando producto:", err);
-        alert(
-          err instanceof Error ? err.message : "Error al inhabilitar producto"
-        );
+      if (error) {
+        throw new Error(error);
       }
+
+      // Actualizar lista local
+      setProductos(productos.filter((p) => p.id !== id));
+      notyf?.success("Producto inhabilitado");
+    } catch (err) {
+      console.error("Error inhabilitando producto:", err);
+      notyf?.error(
+        err instanceof Error ? err.message : "Error al inhabilitar producto"
+      );
     }
   };
 
   const eliminarProductoPermanenteHandler = async (id: string) => {
-    if (
-      confirm(
-        "⚠️ ADVERTENCIA: ¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE este producto?\n\nEsta acción eliminará:\n- El producto\n- Todas sus imágenes\n- Todos sus ingredientes\n- Referencias en carritos de compra\n\nEsta acción NO SE PUEDE DESHACER."
-      )
-    ) {
-      try {
-        const { error } = await eliminarProductoPermanente(id);
+    try {
+      const { error } = await eliminarProductoPermanente(id);
 
-        if (error) {
-          throw new Error(error);
-        }
-
-        // Actualizar lista local
-        setProductos(productos.filter((p) => p.id !== id));
-        alert("Producto eliminado permanentemente de la base de datos");
-      } catch (err) {
-        console.error("Error eliminando producto permanentemente:", err);
-        alert(
-          err instanceof Error
-            ? err.message
-            : "Error al eliminar producto permanentemente"
-        );
+      if (error) {
+        throw new Error(error);
       }
+      // Actualizar lista local
+      setProductos(productos.filter((p) => p.id !== id));
+      notyf?.success("Producto eliminado permanentemente");
+    } catch (err) {
+      console.error("Error eliminando producto permanentemente:", err);
+      notyf?.error(
+        err instanceof Error
+          ? err.message
+          : "Error al eliminar producto permanentemente"
+      );
     }
   };
 
@@ -182,7 +163,9 @@ export default function ProductosPage() {
       );
     } catch (err) {
       console.error("Error cambiando estado:", err);
-      alert(err instanceof Error ? err.message : "Error al cambiar estado");
+      notyf?.error(
+        err instanceof Error ? err.message : "Error al cambiar estado"
+      );
     }
   };
 

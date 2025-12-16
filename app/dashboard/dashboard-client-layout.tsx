@@ -193,7 +193,7 @@ export default function DashboardClientLayout({
           </div>
 
           {/* Navegación */}
-          <nav className="h-[calc(80vh-12rem)] 2xl:h-[calc(85vh-12rem)] bg-indigo-500 rounded-lg overflow-y-auto ml-4 p-3 space-y-2">
+          <nav className="h-[calc(80vh-12rem)] 2xl:h-[calc(85vh-14rem)] bg-indigo-500 rounded-lg overflow-y-auto ml-4 p-3 space-y-2">
             {getFilteredMenuItems().map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -202,9 +202,9 @@ export default function DashboardClientLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-2 py-1 2xl:px-4 2xl:py-2 rounded-lg transition-colors ${
+                  className={`flex items-center gap-2 px-2 py-1 2xl:px-4 2xl:py-2 text-sm rounded-lg transition-colors ${
                     isActive
-                      ? "bg-white text-indigo-600 border-r-2 border-indigo-600"
+                      ? "bg-white text-indigo-600"
                       : "text-white hover:bg-white hover:text-indigo-600"
                   }`}
                 >

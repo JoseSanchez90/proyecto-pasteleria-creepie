@@ -18,10 +18,12 @@ import {
   type Usuario,
 } from "@/app/actions/usuarios";
 import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function EditUserPage() {
   const params = useParams();
   const router = useRouter();
+  const notyf = useNotyf();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +72,7 @@ export default function EditUserPage() {
         }
       } catch (err) {
         console.error("Error cargando usuario:", err);
+        notyf?.error("Error al cargar usuario");
         setError(
           err instanceof Error ? err.message : "Error al cargar usuario"
         );
@@ -89,6 +92,7 @@ export default function EditUserPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError(null);
+    notyf?.error("Usuario actualizado exitosamente");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,7 +126,7 @@ export default function EditUserPage() {
         throw new Error(actionError);
       }
 
-      alert("Usuario actualizado exitosamente");
+      notyf?.success("Usuario actualizado exitosamente");
       router.push("/dashboard/usuarios");
     } catch (error) {
       console.error("Error al actualizar usuario:", error);
@@ -131,19 +135,15 @@ export default function EditUserPage() {
           ? error.message
           : "Error al actualizar el usuario. Intenta nuevamente.";
       setError(errorMessage);
+      notyf?.error(errorMessage);
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán."
-      )
-    ) {
-      router.back();
-    }
+    router.back();
+    notyf?.error("Usuario cancelado");
   };
 
   // Departamentos del Perú

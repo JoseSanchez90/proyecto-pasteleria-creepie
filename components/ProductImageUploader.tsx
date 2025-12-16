@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { uploadProductImage } from "@/app/actions/product-images";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface ProductImageUploaderProps {
   productId: string | null; // null cuando es nuevo producto
@@ -19,6 +20,7 @@ export default function ProductImageUploader({
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const notyf = useNotyf();
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -31,6 +33,7 @@ export default function ProductImageUploader({
     // Validar número máximo
     if (images.length + files.length > maxImages) {
       setError(`Solo puedes subir un máximo de ${maxImages} imágenes`);
+      notyf?.error(`Solo puedes subir un máximo de ${maxImages} imágenes`);
       return;
     }
 
@@ -59,6 +62,7 @@ export default function ProductImageUploader({
 
         if (error) {
           setError(error);
+          notyf?.error(error);
           continue;
         }
 
@@ -69,12 +73,13 @@ export default function ProductImageUploader({
         }
       } catch (err) {
         console.error("Error uploading image:", err);
-        setError("Error al subir la imagen");
+        notyf?.error("Error al subir la imagen");
       }
     }
 
     setUploading(false);
     event.target.value = "";
+    notyf?.success("Imágenes subidas correctamente");
   };
 
   const removeImage = (index: number) => {

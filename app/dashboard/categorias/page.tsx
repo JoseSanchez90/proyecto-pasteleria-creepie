@@ -7,9 +7,6 @@ import {
   Edit,
   Trash2,
   Tag,
-  Eye,
-  ToggleLeft,
-  ToggleRight,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";

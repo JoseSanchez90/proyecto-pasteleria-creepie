@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, X, Tag, Loader } from "lucide-react";
+import { X, Tag } from "lucide-react";
 import { createCategoria } from "@/app/actions/categorias";
 import { FaSave } from "react-icons/fa";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function NuevaCategoriaPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const notyf = useNotyf();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -39,21 +41,20 @@ export default function NuevaCategoriaPage() {
     setLoading(true);
     setError(null);
 
-    // Validaciones básicas
+    // Validaciones
     if (!formData.name.trim()) {
-      setError("El nombre de la categoría es obligatorio");
+      notyf?.error("El nombre de la categoría es obligatorio");
       setLoading(false);
       return;
     }
 
     if (formData.name.trim().length < 2) {
-      setError("El nombre debe tener al menos 2 caracteres");
+      notyf?.error("El nombre debe tener al menos 2 caracteres");
       setLoading(false);
       return;
     }
 
     try {
-      // Crear FormData para enviar
       const categoriaFormData = new FormData();
       categoriaFormData.append("name", formData.name.trim());
       categoriaFormData.append("description", formData.description.trim());
@@ -67,28 +68,30 @@ export default function NuevaCategoriaPage() {
         throw new Error(actionError);
       }
 
-      alert("Categoría creada exitosamente");
-      router.push("/dashboard/categorias");
+      // ✅ Notificación de éxito
+      notyf?.success("¡Categoría creada exitosamente!");
+
+      // Redirigir tras un pequeño delay para que el toast se vea
+      setTimeout(() => {
+        router.push("/dashboard/categorias");
+      }, 1000); // 1 segundo: suficiente para que el usuario vea el mensaje
     } catch (error) {
       console.error("Error al crear categoría:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Error al crear la categoría. Intenta nuevamente.";
-      setError(errorMessage);
+
+      notyf?.error(errorMessage);
+      setError(errorMessage); // opcional, si aún renderizas el error en la UI
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán."
-      )
-    ) {
-      router.push("/dashboard/categorias");
-    }
+    router.push("/dashboard/categorias");
+    notyf?.error("¡Operación cancelada!");
   };
 
   return (
@@ -206,6 +209,7 @@ export default function NuevaCategoriaPage() {
 
         <div className="flex items-center justify-end gap-4">
           <button
+            type="button"
             onClick={handleCancel}
             disabled={loading}
             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2 transition-colors cursor-pointer"
@@ -214,6 +218,7 @@ export default function NuevaCategoriaPage() {
           </button>
 
           <button
+            type="submit"
             onClick={handleSubmit}
             disabled={loading}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors cursor-pointer"

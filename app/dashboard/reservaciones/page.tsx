@@ -25,8 +25,10 @@ import { PiCookingPotFill } from "react-icons/pi";
 import { ImTruck } from "react-icons/im";
 import { FaFileCircleCheck } from "react-icons/fa6";
 import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function ReservationsPage() {
+  const notyf = useNotyf();
   const [reservaciones, setReservaciones] = useState<ReservacionAgrupada[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,7 @@ export default function ReservationsPage() {
         },
         (payload) => {
           console.log("Cambio detectado en reservaciones:", payload);
+          notyf?.success("Reservación actualizada exitosamente");
           cargarReservaciones(); // Recargar datos
         }
       )
@@ -79,6 +82,7 @@ export default function ReservationsPage() {
       setReservaciones(data || []);
     } catch (err) {
       console.error("Error cargando reservaciones:", err);
+      notyf?.error("Error al cargar reservaciones");
       setError(
         err instanceof Error ? err.message : "Error al cargar reservaciones"
       );
@@ -160,8 +164,10 @@ export default function ReservationsPage() {
       // Recargar reservaciones para mostrar cambios
       await cargarReservaciones();
       console.log("Estado actualizado exitosamente");
+      notyf?.success("Estado actualizado exitosamente");
     } catch (err) {
       console.error("Error cambiando estado:", err);
+      notyf?.error("Error al cambiar estado");
       console.log(
         err instanceof Error ? err.message : "Error al cambiar estado"
       );
@@ -169,27 +175,20 @@ export default function ReservationsPage() {
   };
 
   const handleEliminarReservacion = async (id: string) => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres eliminar esta reservación permanentemente?"
-      )
-    ) {
-      try {
-        const { error } = await eliminarReservacion(id);
+    try {
+      const { error } = await eliminarReservacion(id);
 
-        if (error) {
-          throw new Error(error);
-        }
-
-        // Recargar reservaciones para reflejar cambios
-        await cargarReservaciones();
-        console.log("Reservación eliminada exitosamente");
-      } catch (err) {
-        console.error("Error eliminando reservación:", err);
-        console.log(
-          err instanceof Error ? err.message : "Error al eliminar reservación"
-        );
+      if (error) {
+        throw new Error(error);
       }
+
+      // Recargar reservaciones para reflejar cambios
+      await cargarReservaciones();
+      console.log("Reservación eliminada exitosamente");
+      notyf?.success("Reservación eliminada exitosamente");
+    } catch (err) {
+      console.error("Error eliminando reservación:", err);
+      notyf?.error("Error al eliminar reservación");
     }
   };
 
@@ -232,6 +231,8 @@ export default function ReservationsPage() {
       pending: "bg-yellow-100 text-yellow-800",
       confirmed: "bg-blue-100 text-blue-800",
       completed: "bg-green-100 text-green-800",
+      preparing: "bg-orange-100 text-orange-800",
+      on_the_way: "bg-indigo-100 text-indigo-800",
       cancelled: "bg-red-100 text-red-800",
     };
 
@@ -239,6 +240,8 @@ export default function ReservationsPage() {
       pending: "Pendiente",
       confirmed: "Confirmada",
       completed: "Completada",
+      preparing: "En preparación",
+      on_the_way: "En camino",
       cancelled: "Cancelada",
     };
 

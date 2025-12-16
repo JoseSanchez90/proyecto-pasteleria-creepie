@@ -10,6 +10,7 @@ import {
 } from "@/app/actions/categorias";
 import RingLoader from "@/components/loaders/ringLoader";
 import { FaSave } from "react-icons/fa";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function EditarCategoriaPage() {
   const params = useParams();
@@ -18,7 +19,7 @@ export default function EditarCategoriaPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [categoria, setCategoria] = useState<Categoria | null>(null);
-
+  const notyf = useNotyf();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -114,7 +115,7 @@ export default function EditarCategoriaPage() {
         throw new Error(actionError);
       }
 
-      alert("Categoría actualizada exitosamente");
+      notyf?.success("Categoría actualizada exitosamente");
       router.push("/dashboard/categorias");
     } catch (error) {
       console.error("Error al actualizar categoría:", error);
@@ -123,19 +124,15 @@ export default function EditarCategoriaPage() {
           ? error.message
           : "Error al actualizar la categoría. Intenta nuevamente.";
       setError(errorMessage);
+      notyf?.error(errorMessage);
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán."
-      )
-    ) {
-      router.push("/dashboard/categorias");
-    }
+    router.push("/dashboard/categorias");
+    notyf?.error("¡Operación cancelada!");
   };
 
   if (loading) {
@@ -325,6 +322,7 @@ export default function EditarCategoriaPage() {
 
         <div className="flex items-center justify-end gap-4">
           <button
+            type="button"
             onClick={handleCancel}
             disabled={saving}
             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2 transition-colors cursor-pointer"
@@ -333,6 +331,7 @@ export default function EditarCategoriaPage() {
           </button>
 
           <button
+            type="submit"
             onClick={handleSubmit}
             disabled={saving}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors cursor-pointer"

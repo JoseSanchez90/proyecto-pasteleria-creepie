@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export function RegisterModal({
   const [last_name, setLastName] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const notyf = useNotyf();
 
   // Prevenir scroll del body cuando el modal está abierto
   useEffect(() => {
@@ -57,6 +59,7 @@ export function RegisterModal({
     setError(null);
 
     if (password !== confirmPassword) {
+      notyf?.error("Las contraseñas no coinciden");
       setError("Las contraseñas no coinciden");
       setIsLoading(false);
       return;
@@ -84,7 +87,7 @@ export function RegisterModal({
       }, 100);
     } catch (error) {
       console.log(error);
-      setError("Error al registrarse. Intenta con otro correo.");
+      notyf?.error("Error al registrarse. Intenta con otro correo.");
     } finally {
       setIsLoading(false);
     }

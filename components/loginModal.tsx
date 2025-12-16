@@ -8,6 +8,7 @@ import { ForgotPasswordModal } from "@/components/forgotPassword";
 import { createClient } from "@/utils/supabase/client";
 import clsx from "clsx";
 import { pacifico } from "@/lib/fonts";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export function LoginModal({
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const notyf = useNotyf();
 
   // Prevenir scroll del body cuando el modal está abierto
   useEffect(() => {
@@ -61,7 +63,6 @@ export function LoginModal({
     try {
       const supabase = createClient();
 
-      // 1. Iniciar sesión
       const { data: authData, error: authError } =
         await supabase.auth.signInWithPassword({
           email,
@@ -69,12 +70,12 @@ export function LoginModal({
         });
 
       if (authError) {
-        setError(authError.message);
+        // ❌ Notificación de error
+        notyf?.error(authError.message || "Error al iniciar sesión");
         setIsLoading(false);
         return;
       }
 
-      // 2. Obtener el perfil del usuario para verificar el rol
       if (authData.user) {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -84,35 +85,34 @@ export function LoginModal({
 
         if (profileError) {
           console.error("Error obteniendo perfil:", profileError);
-          // Si hay error al obtener el perfil, redirigir al inicio
+          notyf?.error("No se pudo cargar tu perfil. Inténtalo de nuevo.");
           onClose();
           router.refresh();
           return;
         }
 
-        // 3. Verificar el rol y redirigir según corresponda
+        // ✅ Notificación de éxito (opcional, antes de redirigir)
+        notyf?.success("¡Inicio de sesión exitoso!");
+
         if (profile.role === "admin") {
-          // Si es admin, redirigir al dashboard
           onClose();
           router.push("/dashboard");
           return;
         } else if (["staff", "supervisor"].includes(profile.role)) {
-          // Si es staff o supervisor, redirigir al dashboard
           onClose();
           router.push("/dashboard/gestion-asistencia");
-          return; // ✅ Salir aquí para evitar el reload
+          return;
         } else {
-          // Si es customer, cerrar modal y recargar página para actualizar estado
+          // Para "customer", recargar página
           onClose();
-          // Pequeño delay para que el modal se cierre antes de recargar
           setTimeout(() => {
             window.location.reload();
-          }, 100);
+          }, 300); // un poco más de margen para que el toast se vea
         }
       }
     } catch (error) {
       console.error("Error durante el login:", error);
-      setError("Ocurrió un error inesperado");
+      notyf?.error("Ocurrió un error inesperado. Inténtalo más tarde.");
     } finally {
       setIsLoading(false);
     }
@@ -291,16 +291,6 @@ export function LoginModal({
                   "Iniciar Sesión"
                 )}
               </button>
-
-              {/* Separador */}
-              {/* <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Ó</span>
-                </div>
-              </div> */}
 
               {/* Switch to Register */}
               <div className="text-center mt-4 2xl:mt-8">

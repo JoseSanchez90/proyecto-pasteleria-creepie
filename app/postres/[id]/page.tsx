@@ -22,10 +22,11 @@ import type {
 } from "@/app/actions/productos";
 import { agregarAlCarrito } from "@/app/actions/carrito";
 import { generarSlug } from "@/utils/slugify";
-import DotWaveLoader from "@/components/loaders/dotWaveLoader";
 import SizeSelector from "@/components/SizeSelector";
 import { formatPrice } from "@/lib/format";
 import { triggerCartUpdate } from "@/utils/cartEvents";
+import { useNotyf } from "@/app/providers/NotyfProvider";
+import RingLoader from "@/components/loaders/ringLoader";
 
 export default function PostreDetail({
   params,
@@ -50,6 +51,7 @@ export default function PostreDetail({
     {}
   );
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
+  const notyf = useNotyf();
 
   useEffect(() => {
     const fetchProducto = async () => {
@@ -131,7 +133,7 @@ export default function PostreDetail({
       !selectedSizes[productId] &&
       !selectedSizeId
     ) {
-      alert("Por favor selecciona un tamaño");
+      notyf?.error("Por favor selecciona un tamaño");
       return;
     }
 
@@ -146,14 +148,14 @@ export default function PostreDetail({
       const { error } = await agregarAlCarrito(productId, 1, sizeId);
 
       if (error) {
-        alert(error);
+        notyf?.error(error);
       } else {
         triggerCartUpdate();
-        alert("✅ Producto agregado al carrito");
+        notyf?.success("Producto agregado al carrito");
       }
     } catch (err) {
       console.error("Error adding to cart:", err);
-      alert("Error al agregar al carrito");
+      notyf?.error("Error al agregar al carrito");
     } finally {
       setAddingToCart(null);
     }
@@ -161,12 +163,16 @@ export default function PostreDetail({
 
   if (loading) {
     return (
-      <section className="min-h-screen flex justify-center items-center">
-        <div className="text-center">
-          <DotWaveLoader size="55" speed="1" color="#3b82f6" />
-          <p className="mt-4 text-gray-600 text-lg">Cargando producto...</p>
-        </div>
-      </section>
+      <div className="flex flex-col justify-center items-center gap-2 h-screen">
+        <RingLoader
+          size="50"
+          stroke="6"
+          bgOpacity="0.1"
+          speed="1.68"
+          color="#3b82f6"
+        />
+        <p className="text-gray-500">Cargando Postre...</p>
+      </div>
     );
   }
 
@@ -175,7 +181,7 @@ export default function PostreDetail({
       <section className="min-h-screen flex justify-center items-center">
         <div className="text-center">
           <Tag className="w-20 h-20 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-gray-700 mb-2">
+          <h2 className="text-xl 2xl:text-2xl font-bold text-gray-700 mb-2">
             Producto no encontrado
           </h2>
           <Link
@@ -196,7 +202,7 @@ export default function PostreDetail({
   const stockDisponible = producto.stock > 0;
 
   return (
-    <section className="w-full min-h-screen max-w-xs md:max-w-xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto py-24 2xl:py-32">
+    <section className="w-full min-h-screen max-w-xs md:max-w-xl lg:max-w-4xl xl:max-w-6xl mx-auto py-24 2xl:py-32">
       <div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Galería de imágenes */}
@@ -235,7 +241,7 @@ export default function PostreDetail({
                   <button
                     key={index}
                     onClick={() => setImagenActual(index)}
-                    className={`w-14 h-14 xl:-20 xl:h-20 rounded-full border-2 overflow-hidden transition-all cursor-pointer ${
+                    className={`w-14 h-14 xl:w-20 xl:h-20 rounded-full border-2 overflow-hidden transition-all cursor-pointer ${
                       imagenActual === index
                         ? "border-blue-500 scale-110"
                         : "border-gray-300 hover:border-blue-300"
@@ -256,13 +262,13 @@ export default function PostreDetail({
           <div className="space-y-2 2xl:space-y-6">
             {/* Categoría */}
             {producto.category && (
-              <div className="inline-block bg-blue-600 text-white px-4 py-1 2xl:py-2 rounded-full text-sm font-semibold">
+              <div className="inline-block bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
                 {producto.category.name}
               </div>
             )}
 
             {/* Nombre */}
-            <h1 className="text-2xl xl:text-3xl 2xl:text-5xl font-bold text-gray-800">
+            <h1 className="text-2xl xl:text-3xl 2xl:text-4xl font-bold text-gray-800">
               {producto.name}
             </h1>
 
@@ -299,31 +305,34 @@ export default function PostreDetail({
                   />
                 </div>
               ) : (
-                <div className="w-full text-center py-2 bg-white border border-gray-300 rounded-lg">
-                  <span className="text-base font-semibold text-gray-800">
-                    Tamaño único
-                  </span>
+                <div className="w-full flex flex-col justify-center items-start gap-1">
+                  <p className="text-sm font-medium text-indigo-600">Tamaño:</p>
+                  <div className="w-full text-center py-2 bg-white border border-gray-300 rounded-lg">
+                    <span className="text-sm font-semibold text-gray-800">
+                      Único
+                    </span>
+                  </div>
                 </div>
               )}
 
               {/* Tiempo de cocción */}
               {producto.preparation_time ? (
-                <div className="w-full flex flex-col justify-center items-center gap-1">
-                  <span className="text-sm font-medium text-indigo-600">
+                <div className="w-full flex flex-col justify-center items-start gap-1">
+                  <p className="text-sm font-medium text-indigo-600">
                     Tiempo de cocción
-                  </span>
-                  <div className="w-full h-full items-center justify-center text-center py-1.5 bg-white border border-gray-300 rounded-lg">
+                  </p>
+                  <div className="w-full text-center py-2 bg-white border border-gray-300 rounded-lg">
                     <span className="text-sm font-semibold text-gray-800">
                       {producto.preparation_time} minutos
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="w-full flex flex-col justify-center items-center gap-1">
-                  <span className="text-sm font-medium text-indigo-600">
+                <div className="w-full flex flex-col justify-center items-start gap-1">
+                  <p className="text-sm font-medium text-indigo-600">
                     Tiempo de cocción:
-                  </span>
-                  <div className="w-full h-full items-center justify-center text-center py-1.5 bg-white border border-gray-300 rounded-lg">
+                  </p>
+                  <div className="w-full text-center py-2 bg-white border border-gray-300 rounded-lg">
                     <span className="text-sm font-semibold text-gray-800">
                       No disponible
                     </span>
@@ -438,7 +447,7 @@ export default function PostreDetail({
             <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-bold text-blue-600 mb-8 text-center">
               Productos Relacionados
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 xl:gap-24 2xl:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-2 md:gap-6">
               {productosRelacionados.map((productoRelacionado) => {
                 const descuentoRelacionado =
                   productoRelacionado.is_offer &&
@@ -491,7 +500,7 @@ export default function PostreDetail({
 
                         {/* Badge de categoría */}
                         {productoRelacionado.category && (
-                          <div className="absolute bottom-3 right-10">
+                          <div className="absolute bottom-4 right-10">
                             <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-medium capitalize">
                               {productoRelacionado.category.name}
                             </span>
@@ -501,9 +510,9 @@ export default function PostreDetail({
                     </Link>
 
                     {/* Card del producto */}
-                    <div className="h-80 bg-white border border-gray-300 rounded-[40px] shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+                    <div className="h-75 2xl:h-80 bg-white border border-gray-300 rounded-t-[100px] rounded-b-[40px] shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
                       {/* Contenido */}
-                      <div className="flex flex-col gap-4 justify-between p-6 relative top-14">
+                      <div className="flex flex-col gap-2 justify-between p-6 relative top-14">
                         {/* Nombre del producto */}
                         <div className="flex justify-center items-start text-center">
                           <h3 className="text-base 2xl:text-lg text-center font-bold text-blue-600">
@@ -568,15 +577,31 @@ export default function PostreDetail({
                               )}
                             </div>
 
-                            {/* Botón de ver detalles */}
-                            <Link
-                              href={`/postres/${generarSlug(
-                                productoRelacionado.name
-                              )}`}
-                              className="bg-indigo-600 p-2 rounded-full transition-all duration-200 flex items-center justify-center gap-2 font-semibold cursor-pointer hover:bg-indigo-700 hover:shadow-lg"
-                            >
-                              <Plus className="w-5 h-5 text-white" />
-                            </Link>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleAddToCart(producto.id)}
+                                className="bg-indigo-600 p-2 rounded-full transition-all duration-200 flex items-center justify-center gap-2 font-semibold cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 hover:shadow-lg"
+                                disabled={
+                                  producto.stock === 0 ||
+                                  addingToCart === producto.id
+                                }
+                                aria-label={`Agregar ${producto.name} al carrito`}
+                              >
+                                {addingToCart === producto.id ? (
+                                  <div className="w-5 h-5">
+                                    <RingLoader
+                                      size="20"
+                                      stroke="4"
+                                      bgOpacity="0.1"
+                                      speed="1.68"
+                                      color="#3b82f6"
+                                    />
+                                  </div>
+                                ) : (
+                                  <Plus className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+                                )}
+                              </button>
+                            </div>
                           </div>
                         </div>
 

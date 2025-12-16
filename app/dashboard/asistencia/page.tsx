@@ -7,7 +7,7 @@ import {
   getAttendanceByMonth,
 } from "@/app/actions/attendance";
 import { getStaffSchedule } from "@/app/actions/work-schedules";
-import DotWaveLoader from "@/components/loaders/dotWaveLoader";
+import RingLoader from "@/components/loaders/ringLoader";
 
 export default function MiAsistenciaPage() {
   const [todayAttendance, setTodayAttendance] = useState<any>(null);
@@ -103,11 +103,15 @@ export default function MiAsistenciaPage() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <DotWaveLoader size="80" speed="1.0" color="#3b82f6" />
-          <p className="mt-4 text-gray-600">Cargando tu reporte...</p>
-        </div>
+      <div className="flex flex-col justify-center items-center gap-2 h-full">
+        <RingLoader
+          size="50"
+          stroke="6"
+          bgOpacity="0.1"
+          speed="1.68"
+          color="#3b82f6"
+        />
+        <p className="text-gray-500">Cargando Asistencia...</p>
       </div>
     );
   }

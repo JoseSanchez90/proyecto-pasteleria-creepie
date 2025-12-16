@@ -11,8 +11,8 @@ import { triggerCartUpdate } from "@/utils/cartEvents";
 import SizeSelector from "@/components/SizeSelector";
 import { agregarAlCarrito } from "@/app/actions/carrito";
 import Ring2Loader from "./loaders/ringLoader";
-import DotWaveLoader from "./loaders/dotWaveLoader";
 import RingLoader from "./loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 function SpecialOffers() {
   const [productos, setProductos] = useState<ProductoConCategoria[]>([]);
@@ -25,6 +25,7 @@ function SpecialOffers() {
     {}
   );
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
+  const notyf = useNotyf();
 
   useEffect(() => {
     const fetchOfertas = async () => {
@@ -73,14 +74,14 @@ function SpecialOffers() {
       const { error } = await agregarAlCarrito(productId, 1, sizeId);
 
       if (error) {
-        alert(error);
+        notyf?.error(error);
       } else {
         triggerCartUpdate();
-        alert("✅ Producto agregado al carrito");
+        notyf?.success("Producto agregado al carrito");
       }
     } catch (err) {
       console.error("Error adding to cart:", err);
-      alert("Error al agregar al carrito");
+      notyf?.error("Error al agregar al carrito");
     } finally {
       setAddingToCart(null);
     }
@@ -195,18 +196,16 @@ function SpecialOffers() {
                 </Link>
 
                 {/* Card del producto */}
-                <div className="h-80 bg-white border border-gray-300 rounded-[40px] shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
-                  {/* Contenido */}
-                  <div className="flex flex-col gap-4 justify-between p-6 relative top-10">
-                    {/* Nombre del producto */}
-                    <div className="flex justify-center items-center text-center">
-                      <h3 className="text-base 2xl:text-lg text-center font-bold text-blue-600">
+                <div className="h-75 2xl:h-80 bg-white border border-gray-300 rounded-t-[100px] rounded-b-[40px] shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="flex flex-col gap-2 justify-between p-6 relative top-10">
+                    <div className="flex justify-center items-start text-center">
+                      <h3 className="text-base 2xl:text-lg text-center font-semibold text-blue-600">
                         {producto.name}
                       </h3>
                     </div>
 
                     {/* Descripción y precio */}
-                    <div className="flex flex-col items-center gap-4">
+                    <div className="flex flex-col items-start gap-4">
                       <div className="flex items-center gap-2 text-center mt-2">
                         <span className="text-xs 2xl:text-sm text-gray-600">
                           {producto.description || "Delicioso postre artesanal"}
@@ -283,8 +282,8 @@ function SpecialOffers() {
                                 <Ring2Loader
                                   size="20"
                                   stroke="4"
-                                  bgOpacity="0.15"
-                                  speed="1"
+                                  bgOpacity="0.1"
+                                  speed="1.68"
                                   color="#fff"
                                 />
                               </div>

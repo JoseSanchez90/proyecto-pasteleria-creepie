@@ -10,6 +10,7 @@ import {
 } from "@/app/actions/gastos";
 import { Plus, Trash2, DollarSign } from "lucide-react";
 import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 const categorias = [
   { value: "ingredients", label: "Ingredientes" },
@@ -22,6 +23,7 @@ const categorias = [
 ];
 
 export default function GastosPage() {
+  const notyf = useNotyf();
   const [gastos, setGastos] = useState<Gasto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -56,6 +58,7 @@ export default function GastosPage() {
     e.preventDefault();
     const { error } = await crearGasto(formData);
     if (!error) {
+      notyf?.success("Gasto creado exitosamente");
       setShowForm(false);
       setFormData({
         category: "ingredients",
@@ -71,6 +74,7 @@ export default function GastosPage() {
   const handleDelete = async (id: string) => {
     if (confirm("¿Eliminar este gasto?")) {
       await eliminarGasto(id);
+      notyf?.success("Gasto eliminado exitosamente");
       cargarGastos();
     }
   };

@@ -15,6 +15,7 @@ import SizeSelector from "@/components/SizeSelector";
 import DualRangeSlider from "@/components/ui/DualRangeSlider";
 import RingLoader from "@/components/loaders/ringLoader";
 import { formatPrice } from "@/lib/format";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface Category {
   id: string;
@@ -82,6 +83,7 @@ function Postres() {
   const [productPrices, setProductPrices] = useState<{ [key: string]: number }>(
     {}
   );
+  const notyf = useNotyf();
 
   useEffect(() => {
     const loadData = async () => {
@@ -221,14 +223,14 @@ function Postres() {
       const { error } = await agregarAlCarrito(productId, 1, sizeId);
 
       if (error) {
-        alert(error);
+        notyf?.error(error);
       } else {
         triggerCartUpdate();
-        alert("✅ Producto agregado al carrito");
+        notyf?.success("Producto agregado al carrito");
       }
     } catch (err) {
       console.error("Error adding to cart:", err);
-      alert("Error al agregar al carrito");
+      notyf?.error("Error al agregar al carrito");
     } finally {
       setAddingToCart(null);
     }
@@ -371,8 +373,10 @@ function Postres() {
       <section className="w-full min-h-screen flex items-center justify-center">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-            <p className="text-xl font-medium text-gray-600">
+            <h2 className="text-xl 2xl:text-2xl font-bold text-red-600 mb-4">
+              Error
+            </h2>
+            <p className="text-lg 2xl:text-xl font-medium text-gray-600">
               {error}. Por favor, intenta más tarde.
             </p>
           </div>
@@ -386,10 +390,10 @@ function Postres() {
       <section className="w-full min-h-screen flex items-center justify-center">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h2 className="text-4xl font-bold text-blue-600 mb-4">
+            <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-bold text-blue-600 mb-4">
               Nuestros Productos
             </h2>
-            <p className="text-xl font-medium text-gray-600">
+            <p className="text-lg 2xl:text-xl font-medium text-gray-600">
               No hay productos disponibles en este momento.
             </p>
           </div>

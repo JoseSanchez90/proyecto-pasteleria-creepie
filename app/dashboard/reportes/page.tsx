@@ -15,10 +15,11 @@ import {
   Package,
   CreditCard,
 } from "lucide-react";
-import DotWaveLoader from "@/components/loaders/dotWaveLoader";
 import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function ReportesPage() {
+  const notyf = useNotyf();
   const [periodo, setPeriodo] = useState<PeriodoReporte>("month");
   const [modoFecha, setModoFecha] = useState<"preset" | "custom">("preset");
   const [mesSeleccionado, setMesSeleccionado] = useState(new Date().getMonth());
@@ -73,7 +74,9 @@ export default function ReportesPage() {
       setReporte(data);
     } catch (err) {
       console.error("Error loading reports:", err);
-      setError(err instanceof Error ? err.message : "Error al cargar reportes");
+      notyf?.error(
+        err instanceof Error ? err.message : "Error al cargar reportes"
+      );
     } finally {
       setLoading(false);
     }

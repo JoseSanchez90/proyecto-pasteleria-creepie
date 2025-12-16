@@ -15,8 +15,10 @@ import { BsCake2Fill } from "react-icons/bs";
 import { FaSquareWhatsapp } from "react-icons/fa6";
 import RingLoader from "@/components/loaders/ringLoader";
 import { formatPrice } from "@/lib/format";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function OrdersPage() {
+  const notyf = useNotyf();
   const router = useRouter();
   const [pedidos, setPedidos] = useState<PedidoCompleto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,13 +45,15 @@ export default function OrdersPage() {
       const { data, error } = await obtenerPedidos();
 
       if (error) {
-        throw new Error(error);
+        notyf?.error(error);
       }
 
       setPedidos(data || []);
     } catch (err) {
       console.error("Error cargando pedidos:", err);
-      setError(err instanceof Error ? err.message : "Error al cargar pedidos");
+      notyf?.error(
+        err instanceof Error ? err.message : "Error al cargar pedidos"
+      );
     } finally {
       setLoading(false);
     }
@@ -91,7 +95,7 @@ export default function OrdersPage() {
       const { error } = await actualizarEstadoPedido(id, nuevoEstado as any);
 
       if (error) {
-        throw new Error(error);
+        notyf?.error(error);
       }
 
       // Actualizar estado local
@@ -102,7 +106,9 @@ export default function OrdersPage() {
       );
     } catch (err) {
       console.error("Error cambiando estado:", err);
-      alert(err instanceof Error ? err.message : "Error al cambiar estado");
+      notyf?.error(
+        err instanceof Error ? err.message : "Error al cambiar estado"
+      );
     }
   };
 
@@ -119,7 +125,7 @@ export default function OrdersPage() {
       const { error } = await actualizarEstadoPago(id, nuevoEstado as any);
 
       if (error) {
-        throw new Error(error);
+        notyf?.error(error);
       }
 
       // Actualizar estado local
@@ -132,7 +138,7 @@ export default function OrdersPage() {
       );
     } catch (err) {
       console.error("Error cambiando estado de pago:", err);
-      alert(
+      notyf?.error(
         err instanceof Error ? err.message : "Error al cambiar estado de pago"
       );
     }

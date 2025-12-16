@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Settings, Shield } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -44,7 +44,7 @@ export function UserMenu() {
         } = await supabase.auth.getUser();
 
         if (error) {
-          console.error("Error getting user:", error);
+          // console.error("Error getting user:", error);
           if (!isLoggingOut) {
             setUser(null);
             setUserRole("");
@@ -64,7 +64,7 @@ export function UserMenu() {
             .single();
 
           if (profileError) {
-            console.error("Error fetching profile:", profileError);
+            // console.error("Error fetching profile:", profileError);
             // Continuar con rol por defecto
             setUserRole("customer");
             setUserProfile(null);
@@ -80,7 +80,7 @@ export function UserMenu() {
           setUserRole("");
         }
       } catch (error) {
-        console.error("Error initializing auth:", error);
+        // console.error("Error initializing auth:", error);
         if (!isLoggingOut) {
           setUser(null);
           setUserRole("");
@@ -98,11 +98,11 @@ export function UserMenu() {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       // 🔥 IGNORAR todos los eventos si estamos en proceso de logout
       if (isLoggingOut) {
-        console.log("🔒 Ignorando evento durante logout:", event);
+        // console.log("🔒 Ignorando evento durante logout:", event);
         return;
       }
 
-      console.log("🔄 UserMenu Auth event:", event);
+      // console.log("🔄 UserMenu Auth event:", event);
 
       if (event === "SIGNED_OUT") {
         setUser(null);
@@ -144,7 +144,7 @@ export function UserMenu() {
           } = await supabase.auth.getUser();
 
           if (error) {
-            console.error("Error refreshing session:", error);
+            // console.error("Error refreshing session:", error);
             setUser(null);
             setUserRole("");
             return;
@@ -173,7 +173,7 @@ export function UserMenu() {
             setUserProfile(null);
           }
         } catch (error) {
-          console.error("Error handling visibility change:", error);
+          // console.error("Error handling visibility change:", error);
         }
       }
     };
@@ -188,7 +188,7 @@ export function UserMenu() {
     try {
       setIsOpen(false);
       setIsLoggingOut(true); // 🔥 BLOQUEAR actualizaciones de estado
-      console.log("🚪 Iniciando logout...");
+      // console.log("🚪 Iniciando logout...");
 
       // 1. Limpiar estados inmediatamente
       setUser(null);
@@ -199,11 +199,11 @@ export function UserMenu() {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        console.log("❌ Error en signOut:", error);
+        // console.log("❌ Error en signOut:", error);
         throw error;
       }
 
-      console.log("✅ Sesión cerrada en Supabase");
+      // console.log("✅ Sesión cerrada en Supabase");
 
       // 3. Limpiar almacenamiento
       localStorage.removeItem("supabase.auth.token");
@@ -211,12 +211,12 @@ export function UserMenu() {
 
       // 4. Forzar recarga completa inmediata
       setTimeout(() => {
-        console.log("🔄 Redirigiendo a home...");
+        // console.log("🔄 Redirigiendo a home...");
         // Usar replace para evitar que el usuario pueda volver atrás
         window.location.replace("/?logout=" + Date.now());
       }, 10);
     } catch (error) {
-      console.error("❌ Error durante logout:", error);
+      // console.error("❌ Error durante logout:", error);
       // Fallback nuclear
       localStorage.removeItem("supabase.auth.token");
       sessionStorage.clear();

@@ -36,9 +36,11 @@ import { crearPedido } from "@/app/actions/pedidos";
 import EditContactModal from "@/components/EditContactModal";
 import AddressModal from "@/components/AddressModal";
 import AddPaymentMethodModal from "@/components/AddPaymentMethodModal";
-import DotWaveLoader from "@/components/loaders/dotWaveLoader";
+import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 function CheckOutPage() {
+  const notyf = useNotyf();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -74,7 +76,7 @@ function CheckOutPage() {
       } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        window.location.href = "/iniciar-sesion";
+        window.location.href = "/";
         return;
       }
 
@@ -139,6 +141,7 @@ function CheckOutPage() {
       }
     } catch (error) {
       console.error("Error loading data:", error);
+      notyf?.error("Error al cargar datos");
     } finally {
       setLoading(false);
     }
@@ -203,10 +206,12 @@ function CheckOutPage() {
       });
 
       if (error) {
+        notyf?.error(error);
         throw new Error(error);
       }
 
       if (!order) {
+        notyf?.error("No se pudo crear el pedido");
         throw new Error("No se pudo crear el pedido");
       }
 
@@ -217,7 +222,7 @@ function CheckOutPage() {
       router.push(`/confirmacion-pedido/${order.id}`);
     } catch (error) {
       console.error("Error processing order:", error);
-      alert(
+      notyf?.error(
         error instanceof Error
           ? error.message
           : "Error al procesar el pedido. Por favor, intenta nuevamente."
@@ -228,12 +233,16 @@ function CheckOutPage() {
 
   if (loading) {
     return (
-      <section className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <DotWaveLoader size="55" speed="1" color="#3b82f6" />
-          <p className="mt-4 text-gray-700 text-lg">Cargando información...</p>
-        </div>
-      </section>
+      <div className="flex flex-col justify-center items-center gap-2 h-screen">
+        <RingLoader
+          size="50"
+          stroke="6"
+          bgOpacity="0.1"
+          speed="1.68"
+          color="#3b82f6"
+        />
+        <p className="text-gray-500">Cargando información...</p>
+      </div>
     );
   }
 

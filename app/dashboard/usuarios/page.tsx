@@ -19,8 +19,10 @@ import {
   type Usuario,
 } from "@/app/actions/usuarios";
 import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function UsersPage() {
+  const notyf = useNotyf();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [filtroRol, setFiltroRol] = useState("todos");
@@ -50,6 +52,7 @@ export default function UsersPage() {
       setUsuarios(data || []);
     } catch (err) {
       console.error("Error cargando usuarios:", err);
+      notyf?.error("Error al cargar usuarios");
       setError(err instanceof Error ? err.message : "Error al cargar usuarios");
     } finally {
       setCargando(false);
@@ -99,10 +102,12 @@ export default function UsersPage() {
 
         // Actualizar lista local
         setUsuarios(usuarios.filter((u) => u.id !== id));
-        alert("Usuario eliminado permanentemente");
+        notyf?.success("Usuario eliminado permanentemente");
       } catch (err) {
         console.error("Error eliminando usuario:", err);
-        alert(err instanceof Error ? err.message : "Error al eliminar usuario");
+        notyf?.error(
+          err instanceof Error ? err.message : "Error al eliminar usuario"
+        );
       }
     }
   };
@@ -128,7 +133,7 @@ export default function UsersPage() {
       );
     } catch (err) {
       console.error("Error cambiando rol:", err);
-      alert(err instanceof Error ? err.message : "Error al cambiar rol");
+      notyf?.error(err instanceof Error ? err.message : "Error al cambiar rol");
     }
   };
 

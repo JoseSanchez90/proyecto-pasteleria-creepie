@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Loader, Save } from "lucide-react";
 import { actualizarPerfil } from "@/app/actions/usuarios";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface EditContactModalProps {
   userId: string;
@@ -31,6 +32,7 @@ export default function EditContactModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const notyf = useNotyf();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -69,15 +71,16 @@ export default function EditContactModal({
       const { data, error } = await actualizarPerfil(userId, formData);
 
       if (error) {
-        alert("Error al actualizar información: " + error);
+        notyf?.error("Error al actualizar información: " + error);
       } else {
         onSuccess();
       }
     } catch (error) {
       console.error("Error updating contact info:", error);
-      alert("Error al actualizar información");
+      notyf?.error("Error al actualizar información");
     } finally {
       setSaving(false);
+      notyf?.success("Información actualizada correctamente");
     }
   };
 

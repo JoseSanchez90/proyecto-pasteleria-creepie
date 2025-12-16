@@ -8,9 +8,9 @@ import {
   establecerMetodoPredeterminado,
   type PaymentMethod as PaymentMethodType,
 } from "@/app/actions/payment-methods";
-import { CreditCard, Trash2, Plus, X, Loader, Check, Star } from "lucide-react";
-import DotWaveLoader from "./loaders/dotWaveLoader";
+import { CreditCard, Trash2, Plus, X, Loader, Star } from "lucide-react";
 import RingLoader from "./loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface PaymentMethodProps {
   userId: string;
@@ -21,6 +21,7 @@ export default function PaymentMethod({ userId }: PaymentMethodProps) {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const notyf = useNotyf();
 
   useEffect(() => {
     loadPaymentMethods();
@@ -33,12 +34,14 @@ export default function PaymentMethod({ userId }: PaymentMethodProps) {
 
       if (error) {
         console.error("Error loading payment methods:", error);
+        notyf?.error("Error al cargar métodos de pago");
         setPaymentMethods([]);
       } else {
         setPaymentMethods(data || []);
       }
     } catch (error) {
       console.error("Error in loadPaymentMethods:", error);
+      notyf?.error("Error al cargar métodos de pago");
       setPaymentMethods([]);
     } finally {
       setLoading(false);
@@ -55,13 +58,13 @@ export default function PaymentMethod({ userId }: PaymentMethodProps) {
       const { error } = await eliminarMetodoPago(id, userId);
 
       if (error) {
-        alert("Error al eliminar método de pago: " + error);
+        notyf?.error("Error al eliminar método de pago: " + error);
       } else {
         await loadPaymentMethods();
       }
     } catch (error) {
       console.error("Error deleting payment method:", error);
-      alert("Error al eliminar método de pago");
+      notyf?.error("Error al eliminar método de pago");
     } finally {
       setProcessingId(null);
     }
@@ -73,13 +76,13 @@ export default function PaymentMethod({ userId }: PaymentMethodProps) {
       const { error } = await establecerMetodoPredeterminado(id, userId);
 
       if (error) {
-        alert("Error al establecer método predeterminado: " + error);
+        notyf?.error("Error al establecer método predeterminado: " + error);
       } else {
         await loadPaymentMethods();
       }
     } catch (error) {
       console.error("Error setting default:", error);
-      alert("Error al establecer método predeterminado");
+      notyf?.error("Error al establecer método predeterminado");
     } finally {
       setProcessingId(null);
     }

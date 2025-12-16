@@ -9,8 +9,8 @@ import {
   markStaffBreakEnd,
   markStaffCheckOut,
 } from "@/app/actions/attendance";
-import DotWaveLoader from "@/components/loaders/dotWaveLoader";
 import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface StaffMember {
   id: string;
@@ -34,6 +34,7 @@ interface StaffMember {
 }
 
 export default function GestionAsistenciaPage() {
+  const notyf = useNotyf();
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [filteredStaff, setFilteredStaff] = useState<StaffMember[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -99,12 +100,9 @@ export default function GestionAsistenciaPage() {
     }
 
     if (result.error) {
-      setMessage({ type: "error", text: result.error });
+      notyf?.error(result.error);
     } else {
-      setMessage({
-        type: "success",
-        text: `${staffName}: ${result.message}`,
-      });
+      notyf?.success(`${staffName}: ${result.message}`);
       // Recargar datos
       await loadStaffData();
       // Limpiar búsqueda después de marcar asistencia
@@ -112,8 +110,6 @@ export default function GestionAsistenciaPage() {
     }
 
     setActionLoading(null);
-    // Auto-ocultar mensaje después de 5 segundos
-    setTimeout(() => setMessage(null), 5000);
   };
 
   const formatTime = (timestamp: string | null) => {
@@ -198,7 +194,7 @@ export default function GestionAsistenciaPage() {
           speed="1.68"
           color="#3b82f6"
         />
-        <p className="text-gray-500">Cargando Asistencia...</p>
+        <p className="text-gray-500">Cargando Gestion de Asistencia...</p>
       </div>
     );
   }

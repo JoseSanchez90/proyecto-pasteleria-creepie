@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader, MapPin, Check } from "lucide-react";
+import { X, Loader, Check } from "lucide-react";
 import {
   agregarDireccion,
   actualizarDireccion,
   type ShippingAddress,
 } from "@/app/actions/addresses";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface AddressModalProps {
   userId: string;
@@ -34,6 +35,7 @@ export default function AddressModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const notyf = useNotyf();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -76,7 +78,7 @@ export default function AddressModal({
         );
 
         if (error) {
-          alert("Error al actualizar dirección: " + error);
+          notyf?.error("Error al actualizar dirección: " + error);
         } else {
           onSuccess();
         }
@@ -87,16 +89,17 @@ export default function AddressModal({
         });
 
         if (error) {
-          alert("Error al agregar dirección: " + error);
+          notyf?.error("Error al agregar dirección: " + error);
         } else {
           onSuccess();
         }
       }
     } catch (error) {
       console.error("Error saving address:", error);
-      alert("Error al guardar dirección");
+      notyf?.error("Error al guardar dirección");
     } finally {
       setSaving(false);
+      notyf?.success("Dirección guardada correctamente");
     }
   };
 

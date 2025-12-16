@@ -7,19 +7,17 @@ import {
   Users,
   Edit,
   Check,
-  X,
-  Clock,
   AlertCircle,
-  ChevronRight,
   ArrowLeft,
 } from "lucide-react";
 import { getAllStaffAttendance } from "@/app/actions/attendance";
 import { updateAttendanceRecord } from "@/app/actions/attendance";
 import { getAllStaffWithSchedules } from "@/app/actions/work-schedules";
-import DotWaveLoader from "@/components/loaders/dotWaveLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 import RingLoader from "@/components/loaders/ringLoader";
 
 export default function ReportesAsistenciaPage() {
+  const notyf = useNotyf();
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(
@@ -89,10 +87,7 @@ export default function ReportesAsistenciaPage() {
         updates.check_out = date.toISOString();
       }
 
-      const result = await updateAttendanceRecord(
-        editingRecord.id,
-        updates
-      );
+      const result = await updateAttendanceRecord(editingRecord.id, updates);
 
       if (result?.error) {
         throw new Error(result.error);
@@ -102,10 +97,10 @@ export default function ReportesAsistenciaPage() {
       await loadData();
       setEditModal(false);
       setEditingRecord(null);
-      alert("Registro actualizado correctamente");
+      notyf?.success("Registro actualizado correctamente");
     } catch (error) {
       console.error("Error actualizando registro:", error);
-      alert(
+      notyf?.error(
         "Error al actualizar el registro: " +
           (error instanceof Error ? error.message : "")
       );
@@ -167,7 +162,12 @@ export default function ReportesAsistenciaPage() {
       summary[staffId].daysWorked += 1;
 
       // Contar registros incompletos
-      if (!record.check_in || !record.break_start || !record.break_end || !record.check_out) {
+      if (
+        !record.check_in ||
+        !record.break_start ||
+        !record.break_end ||
+        !record.check_out
+      ) {
         summary[staffId].incompleteRecords += 1;
       }
 
@@ -181,7 +181,8 @@ export default function ReportesAsistenciaPage() {
 
   const staffSummary = getStaffSummary();
   const selectedStaffData: any =
-    selectedStaff && staffSummary.find((s: any) => s.staff?.id === selectedStaff);
+    selectedStaff &&
+    staffSummary.find((s: any) => s.staff?.id === selectedStaff);
 
   const formatTime = (timestamp: string | null) => {
     if (!timestamp) return { text: "-", isMissing: true };
@@ -279,7 +280,9 @@ export default function ReportesAsistenciaPage() {
               Empleados ({staffSummary.length})
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              {selectedMonth && selectedYear && `${months[parseInt(selectedMonth) - 1]} ${selectedYear}`}
+              {selectedMonth &&
+                selectedYear &&
+                `${months[parseInt(selectedMonth) - 1]} ${selectedYear}`}
             </p>
           </div>
 
@@ -296,7 +299,8 @@ export default function ReportesAsistenciaPage() {
                       {summary.staff?.first_name} {summary.staff?.last_name}
                     </p>
                     <p className="text-xs mt-1 text-gray-500">
-                      {summary.daysWorked} días • {summary.totalHours.toFixed(1)}h
+                      {summary.daysWorked} días •{" "}
+                      {summary.totalHours.toFixed(1)}h
                     </p>
                   </div>
                   {summary.incompleteRecords > 0 && (
@@ -390,19 +394,25 @@ export default function ReportesAsistenciaPage() {
             {/* Estadísticas */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="bg-white p-3 md:p-4 rounded-lg border border-gray-200">
-                <p className="text-xs md:text-sm text-gray-500 mb-1">Días Trabajados</p>
+                <p className="text-xs md:text-sm text-gray-500 mb-1">
+                  Días Trabajados
+                </p>
                 <p className="text-2xl md:text-3xl font-bold text-indigo-600">
                   {selectedStaffData?.daysWorked || 0}
                 </p>
               </div>
               <div className="bg-white p-3 md:p-4 rounded-lg border border-gray-200">
-                <p className="text-xs md:text-sm text-gray-500 mb-1">Horas Totales</p>
+                <p className="text-xs md:text-sm text-gray-500 mb-1">
+                  Horas Totales
+                </p>
                 <p className="text-2xl md:text-3xl font-bold text-green-600">
                   {selectedStaffData?.totalHours.toFixed(1) || 0}h
                 </p>
               </div>
               <div className="bg-white p-3 md:p-4 rounded-lg border border-gray-200">
-                <p className="text-xs md:text-sm text-gray-500 mb-1">Incompletos</p>
+                <p className="text-xs md:text-sm text-gray-500 mb-1">
+                  Incompletos
+                </p>
                 <p
                   className={`text-2xl md:text-3xl font-bold ${
                     selectedStaffData?.incompleteRecords > 0
@@ -445,108 +455,110 @@ export default function ReportesAsistenciaPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {selectedStaffData?.records && selectedStaffData.records.map((record: any) => {
-                      const checkIn = formatTime(record.check_in);
-                      const breakStart = formatTime(record.break_start);
-                      const breakEnd = formatTime(record.break_end);
-                      const checkOut = formatTime(record.check_out);
-                      const hasIncomplete =
-                        checkIn.isMissing ||
-                        breakStart.isMissing ||
-                        breakEnd.isMissing ||
-                        checkOut.isMissing;
+                    {selectedStaffData?.records &&
+                      selectedStaffData.records.map((record: any) => {
+                        const checkIn = formatTime(record.check_in);
+                        const breakStart = formatTime(record.break_start);
+                        const breakEnd = formatTime(record.break_end);
+                        const checkOut = formatTime(record.check_out);
+                        const hasIncomplete =
+                          checkIn.isMissing ||
+                          breakStart.isMissing ||
+                          breakEnd.isMissing ||
+                          checkOut.isMissing;
 
-                      return (
-                        <tr
-                          key={record.id}
-                          className={`hover:bg-white ${
-                            hasIncomplete ? "bg-yellow-50" : ""
-                          }`}
-                        >
-                          <td className="px-2 md:px-4 py-2 md:py-3 font-medium text-gray-900">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-gray-400 hidden sm:inline" />
-                              {formatDate(record.work_date)}
-                            </div>
-                          </td>
-                          <td className="px-2 md:px-4 py-2 md:py-3">
-                            <span
-                              className={
-                                checkIn.isMissing
-                                  ? "text-red-600 font-semibold"
-                                  : "text-gray-900"
-                              }
-                            >
-                              {checkIn.isMissing && (
-                                <AlertCircle className="w-3 h-3 inline mr-1 text-red-600" />
-                              )}
-                              {checkIn.text}
-                            </span>
-                          </td>
-                          <td className="px-2 md:px-4 py-2 md:py-3">
-                            <span
-                              className={
-                                breakStart.isMissing
-                                  ? "text-red-600 font-semibold"
-                                  : "text-gray-900"
-                              }
-                            >
-                              {breakStart.isMissing && (
-                                <AlertCircle className="w-3 h-3 inline mr-1 text-red-600" />
-                              )}
-                              {breakStart.text}
-                            </span>
-                          </td>
-                          <td className="px-2 md:px-4 py-2 md:py-3">
-                            <span
-                              className={
-                                breakEnd.isMissing
-                                  ? "text-red-600 font-semibold"
-                                  : "text-gray-900"
-                              }
-                            >
-                              {breakEnd.isMissing && (
-                                <AlertCircle className="w-3 h-3 inline mr-1 text-red-600" />
-                              )}
-                              {breakEnd.text}
-                            </span>
-                          </td>
-                          <td className="px-2 md:px-4 py-2 md:py-3">
-                            <span
-                              className={
-                                checkOut.isMissing
-                                  ? "text-red-600 font-semibold"
-                                  : "text-gray-900"
-                              }
-                            >
-                              {checkOut.isMissing && (
-                                <AlertCircle className="w-3 h-3 inline mr-1 text-red-600" />
-                              )}
-                              {checkOut.text}
-                            </span>
-                          </td>
-                          <td className="px-2 md:px-4 py-2 md:py-3 font-semibold text-gray-900">
-                            {record.hours_worked
-                              ? parseFloat(record.hours_worked).toFixed(1)
-                              : "-"}
-                            h
-                          </td>
-                          <td className="px-2 md:px-4 py-2 md:py-3">
-                            <button
-                              onClick={() => openEditModal(record)}
-                              className="inline-flex items-center gap-1 px-2 md:px-3 py-1.5 text-xs md:text-sm bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 transition whitespace-nowrap"
-                            >
-                              <Edit className="w-3 h-3" />
-                              <span className="hidden sm:inline">Editar</span>
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                        return (
+                          <tr
+                            key={record.id}
+                            className={`hover:bg-white ${
+                              hasIncomplete ? "bg-yellow-50" : ""
+                            }`}
+                          >
+                            <td className="px-2 md:px-4 py-2 md:py-3 font-medium text-gray-900">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-gray-400 hidden sm:inline" />
+                                {formatDate(record.work_date)}
+                              </div>
+                            </td>
+                            <td className="px-2 md:px-4 py-2 md:py-3">
+                              <span
+                                className={
+                                  checkIn.isMissing
+                                    ? "text-red-600 font-semibold"
+                                    : "text-gray-900"
+                                }
+                              >
+                                {checkIn.isMissing && (
+                                  <AlertCircle className="w-3 h-3 inline mr-1 text-red-600" />
+                                )}
+                                {checkIn.text}
+                              </span>
+                            </td>
+                            <td className="px-2 md:px-4 py-2 md:py-3">
+                              <span
+                                className={
+                                  breakStart.isMissing
+                                    ? "text-red-600 font-semibold"
+                                    : "text-gray-900"
+                                }
+                              >
+                                {breakStart.isMissing && (
+                                  <AlertCircle className="w-3 h-3 inline mr-1 text-red-600" />
+                                )}
+                                {breakStart.text}
+                              </span>
+                            </td>
+                            <td className="px-2 md:px-4 py-2 md:py-3">
+                              <span
+                                className={
+                                  breakEnd.isMissing
+                                    ? "text-red-600 font-semibold"
+                                    : "text-gray-900"
+                                }
+                              >
+                                {breakEnd.isMissing && (
+                                  <AlertCircle className="w-3 h-3 inline mr-1 text-red-600" />
+                                )}
+                                {breakEnd.text}
+                              </span>
+                            </td>
+                            <td className="px-2 md:px-4 py-2 md:py-3">
+                              <span
+                                className={
+                                  checkOut.isMissing
+                                    ? "text-red-600 font-semibold"
+                                    : "text-gray-900"
+                                }
+                              >
+                                {checkOut.isMissing && (
+                                  <AlertCircle className="w-3 h-3 inline mr-1 text-red-600" />
+                                )}
+                                {checkOut.text}
+                              </span>
+                            </td>
+                            <td className="px-2 md:px-4 py-2 md:py-3 font-semibold text-gray-900">
+                              {record.hours_worked
+                                ? parseFloat(record.hours_worked).toFixed(1)
+                                : "-"}
+                              h
+                            </td>
+                            <td className="px-2 md:px-4 py-2 md:py-3">
+                              <button
+                                onClick={() => openEditModal(record)}
+                                className="inline-flex items-center gap-1 px-2 md:px-3 py-1.5 text-xs md:text-sm bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 transition whitespace-nowrap"
+                              >
+                                <Edit className="w-3 h-3" />
+                                <span className="hidden sm:inline">Editar</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
 
-                {(!selectedStaffData?.records || selectedStaffData.records.length === 0) && (
+                {(!selectedStaffData?.records ||
+                  selectedStaffData.records.length === 0) && (
                   <div className="text-center py-8 md:py-12 text-gray-500 text-sm">
                     No hay registros para este período
                   </div>

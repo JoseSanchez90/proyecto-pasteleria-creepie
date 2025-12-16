@@ -10,6 +10,7 @@ import {
   setMainImage,
   type ProductImage,
 } from "@/app/actions/product-images";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface ProductImageManagerProps {
   productId: string;
@@ -20,6 +21,7 @@ export default function ProductImageManager({
   productId,
   maxImages = 5,
 }: ProductImageManagerProps) {
+  const notyf = useNotyf();
   const [images, setImages] = useState<ProductImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -37,13 +39,14 @@ export default function ProductImageManager({
 
       if (error) {
         setError(error);
+        notyf?.error(error);
         return;
       }
 
       setImages(data || []);
     } catch (err) {
       console.error("Error loading images:", err);
-      setError("Error al cargar las imágenes");
+      notyf?.error("Error al cargar las imágenes");
     } finally {
       setLoading(false);
     }
@@ -60,6 +63,7 @@ export default function ProductImageManager({
     // Validar número máximo
     if (images.length + files.length > maxImages) {
       setError(`Solo puedes subir un máximo de ${maxImages} imágenes`);
+      notyf?.error(`Solo puedes subir un máximo de ${maxImages} imágenes`);
       return;
     }
 
@@ -74,6 +78,7 @@ export default function ProductImageManager({
 
         if (error) {
           setError(error);
+          notyf?.error(error);
           continue;
         }
 
@@ -82,7 +87,7 @@ export default function ProductImageManager({
         }
       } catch (err) {
         console.error("Error uploading image:", err);
-        setError("Error al subir la imagen");
+        notyf?.error("Error al subir la imagen");
       }
     }
 
@@ -98,13 +103,14 @@ export default function ProductImageManager({
 
       if (error) {
         setError(error);
+        notyf?.error(error);
         return;
       }
 
       setImages((prev) => prev.filter((img) => img.id !== imageId));
     } catch (err) {
       console.error("Error deleting image:", err);
-      setError("Error al eliminar la imagen");
+      notyf?.error("Error al eliminar la imagen");
     }
   };
 
@@ -114,6 +120,7 @@ export default function ProductImageManager({
 
       if (error) {
         setError(error);
+        notyf?.error(error);
         return;
       }
 
@@ -121,7 +128,7 @@ export default function ProductImageManager({
       await loadImages();
     } catch (err) {
       console.error("Error setting main image:", err);
-      setError("Error al establecer imagen principal");
+      notyf?.error("Error al establecer imagen principal");
     }
   };
 

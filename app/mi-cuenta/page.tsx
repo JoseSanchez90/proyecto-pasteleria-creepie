@@ -147,7 +147,10 @@ export default function MyAccount() {
 
 /* ---------------- DATOS PERSONALES ---------------- */
 
+import { useNotyf } from "@/app/providers/NotyfProvider";
+
 function DatosPersonales({ user }: { user: any }) {
+  const notyf = useNotyf();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -171,6 +174,7 @@ function DatosPersonales({ user }: { user: any }) {
 
         if (error) {
           console.error("Error loading profile:", error);
+          notyf?.error("Error al cargar perfil");
         } else if (data) {
           setProfile(data as Profile);
           setFormData({
@@ -191,6 +195,7 @@ function DatosPersonales({ user }: { user: any }) {
         }
       } catch (error) {
         console.error("Error in loadProfile:", error);
+        notyf?.error("Error al cargar perfil");
       } finally {
         setLoading(false);
       }
@@ -205,7 +210,7 @@ function DatosPersonales({ user }: { user: any }) {
 
   const updateProfile = async () => {
     if (!formData.first_name.trim() || !formData.last_name.trim()) {
-      alert("Por favor completa tu nombre y apellido");
+      notyf?.error("Por favor completa tu nombre y apellido");
       return;
     }
 
@@ -214,14 +219,14 @@ function DatosPersonales({ user }: { user: any }) {
       const { error } = await actualizarPerfil(user.id, formData);
 
       if (error) {
-        alert("Error al actualizar perfil: " + error);
+        notyf?.error("Error al actualizar perfil: " + error);
       } else {
-        alert("✅ Perfil actualizado correctamente");
+        notyf?.success("Perfil actualizado correctamente");
         setIsNewProfile(false);
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Error al actualizar perfil");
+      notyf?.error("Error al actualizar perfil");
     } finally {
       setSaving(false);
     }
@@ -411,6 +416,7 @@ function DatosPersonales({ user }: { user: any }) {
 
       <div className="flex items-center gap-4">
         <button
+          type="submit"
           onClick={updateProfile}
           disabled={
             saving || !formData.first_name.trim() || !formData.last_name.trim()

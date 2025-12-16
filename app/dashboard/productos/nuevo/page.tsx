@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Save, X, Upload, Plus, Trash2, Loader } from "lucide-react";
+import { X, Upload, Plus, Trash2 } from "lucide-react";
 import {
   crearProducto,
   agregarIngredienteProducto,
@@ -12,6 +12,7 @@ import { obtenerCategorias } from "@/app/actions/categorias";
 import { obtenerTamanos } from "@/app/actions/tamanos";
 import RingLoader from "@/components/loaders/ringLoader";
 import { FaSave } from "react-icons/fa";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 // Interface para categorías
 interface Categoria {
@@ -42,6 +43,7 @@ export default function NuevoProductoPage() {
   const [ingredientes, setIngredientes] = useState<string[]>([]);
   const [nuevoIngrediente, setNuevoIngrediente] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const notyf = useNotyf();
 
   // Estado del formulario basado en tu DB
   const [formData, setFormData] = useState({
@@ -74,11 +76,13 @@ export default function NuevoProductoPage() {
         const { data: tamanosData, error: tamanosError } =
           await obtenerTamanos();
         if (tamanosError) {
+          notyf?.error("Error cargando tamaños");
           console.error("Error cargando tamaños:", tamanosError);
         }
         setTamanos(tamanosData || []);
         setCargandoTamanos(false);
       } catch (err) {
+        notyf?.error("Error cargando datos");
         console.error("Error cargando datos:", err);
         setError("Error al cargar datos");
         setCargandoCategorias(false);
@@ -110,7 +114,11 @@ export default function NuevoProductoPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      setImagenes((prev) => [...prev, ...Array.from(files)]);
+      const fileArray = Array.from(files);
+      setImagenes((prev) => {
+        const newImages = [...prev, ...fileArray];
+        return newImages;
+      });
     }
     // Reset input value to allow uploading the same file again
     e.target.value = "";
@@ -170,18 +178,21 @@ export default function NuevoProductoPage() {
     // Validaciones básicas
     if (!formData.name || !formData.price || !formData.category_id) {
       setError("Nombre, precio y categoría son obligatorios");
+      notyf?.error("Nombre, precio y categoría son obligatorios");
       setLoading(false);
       return;
     }
 
     if (parseFloat(formData.price) <= 0) {
       setError("El precio debe ser mayor a 0");
+      notyf?.error("El precio debe ser mayor a 0");
       setLoading(false);
       return;
     }
 
     if (formData.is_offer && parseFloat(formData.offer_price) <= 0) {
       setError("El precio de oferta debe ser mayor a 0");
+      notyf?.error("El precio de oferta debe ser mayor a 0");
       setLoading(false);
       return;
     }
@@ -230,6 +241,7 @@ export default function NuevoProductoPage() {
 
         if (imageError) {
           console.error(`Error uploading image ${i + 1}:`, imageError);
+          notyf?.error(`Error al subir la imagen`);
           // Continue with other images even if one fails
         }
       }
@@ -243,6 +255,7 @@ export default function NuevoProductoPage() {
 
         if (ingredienteError) {
           console.error("Error agregando ingrediente:", ingredienteError);
+          notyf?.error(`Error al agregar ingrediente`);
           // Continuamos aunque falle un ingrediente
         }
       }
@@ -260,11 +273,12 @@ export default function NuevoProductoPage() {
 
         if (sizesError) {
           console.error("Error asignando tamaños:", sizesError);
+          notyf?.error(`Error al asignar tamaños`);
           // Continuamos aunque falle
         }
       }
 
-      alert("Producto creado exitosamente");
+      notyf?.success(`Producto creado exitosamente`);
       router.push("/dashboard/productos");
     } catch (error) {
       console.error("Error al crear producto:", error);
@@ -273,19 +287,16 @@ export default function NuevoProductoPage() {
           ? error.message
           : "Error al crear el producto. Intenta nuevamente.";
       setError(errorMessage);
+      notyf?.error(errorMessage);
     } finally {
       setLoading(false);
+      notyf?.success(`Producto creado exitosamente`);
     }
   };
 
   const handleCancel = () => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán."
-      )
-    ) {
-      router.push("/dashboard/productos");
-    }
+    router.push("/dashboard/productos");
+    notyf?.error(`Operación cancelada`);
   };
 
   return (
@@ -773,6 +784,7 @@ export default function NuevoProductoPage() {
 
         <div className="flex items-center justify-end gap-4">
           <button
+            type="button"
             onClick={handleCancel}
             disabled={loading}
             className="px-4 py-2 border bg-white border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex justify-center items-center gap-2 transition-colors cursor-pointer"
@@ -781,7 +793,7 @@ export default function NuevoProductoPage() {
           </button>
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 transition-colors cursor-pointer"
           >

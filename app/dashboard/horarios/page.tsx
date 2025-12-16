@@ -9,8 +9,10 @@ import {
   getAllStaffWithSchedules,
 } from "@/app/actions/work-schedules";
 import RingLoader from "@/components/loaders/ringLoader";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function HorariosPage() {
+  const notyf = useNotyf();
   const [schedules, setSchedules] = useState<any[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -48,9 +50,9 @@ export default function HorariosPage() {
     const result = await createWorkSchedule(formData);
 
     if (result.error) {
-      setMessage(`Error: ${result.error}`);
+      notyf?.error(result.error);
     } else {
-      setMessage("Horario creado exitosamente");
+      notyf?.success("Horario creado exitosamente");
       setShowCreateModal(false);
       setFormData({
         name: "",
@@ -66,12 +68,11 @@ export default function HorariosPage() {
     }
 
     setLoading(false);
-    setTimeout(() => setMessage(""), 3000);
   };
 
   const handleAssignSchedule = async (scheduleId: string) => {
     if (!selectedStaff) {
-      setMessage("Selecciona un empleado");
+      notyf?.error("Selecciona un empleado");
       return;
     }
 
@@ -84,16 +85,15 @@ export default function HorariosPage() {
     );
 
     if (result.error) {
-      setMessage(`Error: ${result.error}`);
+      notyf?.error(result.error);
     } else {
-      setMessage("Horario asignado exitosamente");
+      notyf?.success("Horario asignado exitosamente");
       setShowAssignModal(false);
       setSelectedStaff("");
       await loadData();
     }
 
     setLoading(false);
-    setTimeout(() => setMessage(""), 3000);
   };
 
   if (loading) {
@@ -106,7 +106,7 @@ export default function HorariosPage() {
           speed="1.68"
           color="#3b82f6"
         />
-        <p className="text-gray-500">Cargando Reservaciones...</p>
+        <p className="text-gray-500">Cargando Horarios...</p>
       </div>
     );
   }
@@ -126,12 +126,6 @@ export default function HorariosPage() {
             Crear Horario
           </button>
         </div>
-
-        {message && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
-            {message}
-          </div>
-        )}
 
         {/* Horarios Disponibles */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-4 2xl:mb-8">

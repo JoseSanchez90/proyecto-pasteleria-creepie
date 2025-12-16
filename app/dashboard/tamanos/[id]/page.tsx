@@ -8,10 +8,13 @@ import {
   actualizarTamano,
   type Tamano,
 } from "@/app/actions/tamanos";
+import { useNotyf } from "@/app/providers/NotyfProvider";
+import RingLoader from "@/components/loaders/ringLoader";
 
 export default function EditarTamanoPage() {
   const params = useParams();
   const router = useRouter();
+  const notyf = useNotyf();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +56,7 @@ export default function EditarTamanoPage() {
         }
       } catch (err) {
         console.error("Error cargando tamaño:", err);
+        notyf?.error("Error al cargar tamaño");
         setError(err instanceof Error ? err.message : "Error al cargar tamaño");
       } finally {
         setLoading(false);
@@ -72,12 +76,14 @@ export default function EditarTamanoPage() {
     if (!formData.name.trim()) {
       setError("El nombre del tamaño es obligatorio");
       setSaving(false);
+      notyf?.error("El nombre del tamaño es obligatorio");
       return;
     }
 
     if (!formData.person_capacity || parseInt(formData.person_capacity) <= 0) {
       setError("La capacidad de personas debe ser mayor a 0");
       setSaving(false);
+      notyf?.error("La capacidad de personas debe ser mayor a 0");
       return;
     }
 
@@ -99,7 +105,7 @@ export default function EditarTamanoPage() {
         throw new Error(actionError);
       }
 
-      alert("Tamaño actualizado exitosamente");
+      notyf?.success("Tamaño actualizado exitosamente");
       router.push("/dashboard/tamanos");
     } catch (error) {
       console.error("Error al actualizar tamaño:", error);
@@ -108,28 +114,28 @@ export default function EditarTamanoPage() {
           ? error.message
           : "Error al actualizar el tamaño. Intenta nuevamente.";
       setError(errorMessage);
+      notyf?.error(errorMessage);
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán."
-      )
-    ) {
-      router.push("/dashboard/tamanos");
-    }
+    notyf?.error("Tamaño cancelado");
+    router.push("/dashboard/tamanos");
   };
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <Loader className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
-          <p className="text-gray-600">Cargando tamaño...</p>
-        </div>
+      <div className="h-full flex flex-col justify-center items-center gap-2">
+        <RingLoader
+          size="50"
+          stroke="6"
+          bgOpacity="0.1"
+          speed="1.68"
+          color="#3b82f6"
+        />
+        <p className="text-gray-500">Cargando Tamaño...</p>
       </div>
     );
   }

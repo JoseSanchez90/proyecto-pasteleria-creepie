@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, X } from "lucide-react";
 import { crearTamano } from "@/app/actions/tamanos";
 import { FaSave } from "react-icons/fa";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function NuevoTamanoPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const notyf = useNotyf();
   const [formData, setFormData] = useState({
     name: "",
     person_capacity: "",
@@ -37,11 +38,13 @@ export default function NuevoTamanoPage() {
         throw new Error(error);
       }
 
-      alert("Tamaño creado exitosamente");
+      notyf?.success("Tamaño creado exitosamente");
       router.push("/dashboard/tamanos");
     } catch (err) {
       console.error("Error creating size:", err);
-      alert(err instanceof Error ? err.message : "Error al crear tamaño");
+      notyf?.error(
+        err instanceof Error ? err.message : "Error al crear tamaño"
+      );
     } finally {
       setLoading(false);
     }
@@ -49,6 +52,7 @@ export default function NuevoTamanoPage() {
 
   const handleCancel = () => {
     router.push("/dashboard/tamanos");
+    notyf?.error("¡Operación cancelada!");
   };
 
   return (

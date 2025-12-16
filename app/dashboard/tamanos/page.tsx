@@ -29,7 +29,7 @@ export default function TamanosPage() {
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [paginaActual, setPaginaActual] = useState(1);
-  const elementosPorPagina = 5;
+  const elementosPorPagina = 6;
 
   useEffect(() => {
     cargarTamanos();

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Loader, CreditCard } from "lucide-react";
 import { agregarMetodoPago } from "@/app/actions/payment-methods";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface AddPaymentMethodModalProps {
   userId: string;
@@ -26,6 +27,7 @@ export default function AddPaymentMethodModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [detectedCardType, setDetectedCardType] = useState<string | null>(null);
+  const notyf = useNotyf();
 
   const detectCardType = (number: string) => {
     const digits = number.replace(/\s/g, "");
@@ -113,13 +115,13 @@ export default function AddPaymentMethodModal({
       });
 
       if (error) {
-        alert("Error al agregar tarjeta: " + error);
+        notyf?.error("Error al agregar tarjeta: " + error);
       } else {
         onSuccess();
       }
     } catch (error) {
       console.error("Error adding card:", error);
-      alert("Error al agregar tarjeta");
+      notyf?.error("Error al agregar tarjeta");
     } finally {
       setSaving(false);
     }

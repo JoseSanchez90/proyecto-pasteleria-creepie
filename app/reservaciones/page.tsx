@@ -24,10 +24,10 @@ import {
 } from "@/app/actions/reservaciones";
 import { createClient } from "@/utils/supabase/client";
 import RingLoader from "@/components/loaders/ringLoader";
-import DotWaveLoader from "@/components/loaders/dotWaveLoader";
 import { BiMessageRoundedDetail } from "react-icons/bi";
 import { LoginModal } from "@/components/loginModal";
 import { RegisterModal } from "@/components/registerModal";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 interface SizeOption {
   id: string;
@@ -61,6 +61,7 @@ interface CartItem {
 }
 
 export default function Reservaciones() {
+  const notyf = useNotyf();
   const [loading, setLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingUser, setLoadingUser] = useState(true); // Nuevo estado
@@ -108,25 +109,6 @@ export default function Reservaciones() {
 
         // Obtener productos activos con tamaños
         const { data: productosData } = await obtenerProductosActivos();
-
-        // Debug: Ver la estructura de datos
-        if (productosData && productosData.length > 0) {
-          console.log("🔍 Productos cargados:", productosData);
-          console.log("🔍 Primer producto:", productosData[0]);
-          if (
-            productosData[0].available_sizes &&
-            productosData[0].available_sizes.length > 0
-          ) {
-            console.log(
-              "🔍 Primer tamaño:",
-              productosData[0].available_sizes[0]
-            );
-            console.log(
-              "🔍 Size data:",
-              productosData[0].available_sizes[0].size
-            );
-          }
-        }
 
         // Transformar datos: Supabase devuelve size como objeto, pero necesitamos array
         const productosTransformados = productosData?.map((producto: any) => ({
@@ -321,17 +303,17 @@ export default function Reservaciones() {
 
     try {
       if (cart.length === 0) {
-        alert("Por favor agrega al menos un producto al carrito");
+        notyf?.error("Por favor agrega al menos un producto al carrito");
         return;
       }
 
       if (!reservationDate || !reservationTime) {
-        alert("Por favor selecciona fecha y hora de recogida");
+        notyf?.error("Por favor selecciona fecha y hora de recogida");
         return;
       }
 
       if (!user) {
-        alert("Debes iniciar sesión para hacer una reservación");
+        notyf?.error("Debes iniciar sesión para hacer una reservación");
         return;
       }
 
@@ -351,7 +333,7 @@ export default function Reservaciones() {
 
       if (error) throw new Error(error);
 
-      alert(
+      notyf?.success(
         "¡Reservación creada exitosamente! Nos pondremos en contacto contigo."
       );
 
@@ -362,7 +344,7 @@ export default function Reservaciones() {
       setSpecialRequests("");
     } catch (error) {
       console.error("Error creando reservación:", error);
-      alert(
+      notyf?.error(
         error instanceof Error ? error.message : "Error al crear la reservación"
       );
     } finally {

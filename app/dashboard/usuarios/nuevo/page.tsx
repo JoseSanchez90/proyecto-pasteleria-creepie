@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { X, User, Mail, Phone, MapPin, Calendar, IdCard } from "lucide-react";
 import { crearUsuario } from "@/app/actions/usuarios";
 import { FaSave } from "react-icons/fa";
+import { useNotyf } from "@/app/providers/NotyfProvider";
 
 export default function NewUserPage() {
   const router = useRouter();
+  const notyf = useNotyf();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,18 +59,21 @@ export default function NewUserPage() {
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden");
       setLoading(false);
+      notyf?.error("Las contraseñas no coinciden");
       return;
     }
 
     if (formData.password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres");
       setLoading(false);
+      notyf?.error("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
     if (!formData.first_name || !formData.last_name || !formData.dni_ruc) {
       setError("Los campos de nombre, apellido y DNI son obligatorios");
       setLoading(false);
+      notyf?.error("Los campos de nombre, apellido y DNI son obligatorios");
       return;
     }
 
@@ -97,7 +102,7 @@ export default function NewUserPage() {
       }
 
       // Mostrar mensaje de éxito
-      alert("Usuario creado exitosamente");
+      notyf?.success("Usuario creado exitosamente");
 
       // Redirigir a la lista de usuarios
       router.push("/dashboard/usuarios");
@@ -108,19 +113,15 @@ export default function NewUserPage() {
           ? error.message
           : "Error al crear el usuario. Intenta nuevamente.";
       setError(errorMessage);
+      notyf?.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    if (
-      confirm(
-        "¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán."
-      )
-    ) {
-      router.back();
-    }
+    router.back();
+    notyf?.error("Operación cancelada");
   };
 
   // Departamentos del Perú (ejemplo)
