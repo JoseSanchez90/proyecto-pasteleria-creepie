@@ -588,18 +588,16 @@ function Postres() {
                               {producto.is_offer ? (
                                 <>
                                   <span className="text-xl font-bold text-indigo-600">
-                                    S/{" "}
                                     {formatPrice(
                                       productPrices[producto.id] || precioFinal
                                     )}
                                   </span>
                                   <span className="text-sm text-gray-500 line-through">
-                                    S/ {formatPrice(producto.price)}
+                                    {formatPrice(producto.price)}
                                   </span>
                                 </>
                               ) : (
                                 <span className="text-xl font-bold text-indigo-600">
-                                  S/{" "}
                                   {formatPrice(
                                     productPrices[producto.id] || producto.price
                                   )}
